@@ -1,39 +1,21 @@
-from ctypes import string_at
-from multiprocessing import RawArray, process
 from tkinter import *
 from tkinter import messagebox
 from tkinter import IntVar
-import time
 import pyautogui
-import win32api, win32con, win32gui
 import datetime
-import secrets
-import keyboard
-from pynput import keyboard
-from pynput.keyboard import Key, Listener, KeyCode
 from multiprocessing import Process, Queue, Value
+from pynput.keyboard import Key, Listener, KeyCode
 
-# Collect events until released
-s_x = None
-s_y = None
-e_x = None
-e_y = None
-millisecond_lower = None
-millisecond_higher = None
+
 running = False
-direction = None
-rawKey = None
-finalKey = None
 globalKey = None
-finiteReset = Queue()
-ClickCounter = Queue()
-finiteReset.put(False)
-beginningVariable = True
-lastOption = None
 counterVariable = Value('i', 0)
+
+
 class Application():
 
-    def __init__(self, master):
+    def __init__(self, master, listener):
+        self.listener = listener
         self.master = master
         self.rect = None
         self.x = self.y = 0
@@ -46,7 +28,7 @@ class Application():
         #root.attributes("-transparentcolor","red")
 
         #root.attributes("-transparent", "blue")
-        master.geometry('900x480+1700+800')  # set new geometry
+        master.geometry('1100x580+1700+800')  # set new geometry
         master.title('Random Mouse Clicker')
         self.menu_frame = Frame(master)
         self.menu_frame.pack(expand=YES, fill=BOTH)
@@ -284,7 +266,7 @@ class Application():
             self.delaytext.set("{} < x < {} {}".format(self.rangetxtbelow.get(), self.rangetextabove.get(), tempVariable))
 
     def minim(self):
-        root.wm_state("iconic")
+        self.master.wm_state("iconic")
 
     def enableRange(self):
         self.numberofclicks.config(state='disabled')
@@ -340,13 +322,13 @@ class Application():
 
     def takeBoundedScreenShot(self, x1, y1, x2, y2):
         im = pyautogui.screenshot(region=(x1, y1, x2, y2))
-        x = datetime.datetime.now()
-        fileName = x.strftime("%f")
+        #x = datetime.datetime.now()
+        #fileName = x.strftime("%f")
         #im.save("snips/" + fileName + ".png")
 
     def createScreenCanvas(self):
         self.master_screen.deiconify()
-        root.withdraw()
+        self.master.withdraw()
 
         self.screenCanvas = Canvas(self.picture_frame, cursor="cross", bg="grey11")
         self.screenCanvas.pack(fill=BOTH, expand=YES)
@@ -395,12 +377,12 @@ class Application():
         print("Screenshot mode exited")
         self.screenCanvas.destroy()
         self.master_screen.withdraw()
-        root.deiconify()
+        self.master.deiconify()
 
     def exit_application(self):
         print("Application exit")
-        listener.stop()
-        root.quit()
+        #self.listener.stop()
+        self.master.quit()
 
     def on_button_press(self, event):
         # save mouse drag start position
@@ -423,273 +405,3 @@ class Application():
         print(self.start_y)
         print(self.curX)
         print(self.curY)    
-
-def clickMouse(s_x, s_y, e_x, e_y, millisecond_higher, millisecond_lower, direction):
-    #print("{}, {}, {}, {}, {}, {}".format(s_x, s_y, e_x, e_y, millisecond_higher, millisecond_lower))
-    try:
-        if direction == "rd":
-            x_coord = int(s_x+secrets.randbelow(int(e_x) - int(s_x)))
-            y_coord = int(s_y+secrets.randbelow(int(e_y) - int(s_y)))
-
-        elif direction == "ru":
-            x_coord = int(s_x+secrets.randbelow(int(e_x) - int(s_x)))
-            y_coord = int(e_y+secrets.randbelow(int(s_y) - int(e_y)))
-        
-        elif direction == "ld":
-            x_coord = int(e_x+secrets.randbelow(int(s_x) - int(e_x)))
-            y_coord = int(s_y+secrets.randbelow(int(e_y) - int(s_y)))
-            
-        elif direction == "lu":
-            x_coord = int(e_x+secrets.randbelow(int(s_x) - int(e_x)))
-            y_coord = int(e_y+secrets.randbelow(int(s_y) - int(e_y)))
-
-        else:
-            messagebox.showerror("Fatal Error", "Report to Joey if this happens")
-            return 0
-    except:
-        messagebox.showerror("None Error", "Select an Area to click from")
-        messagebox.showerror("Log Box", "sx {} sy {} ex {} ey {}".format(s_x, s_y, e_x, e_y))
-        return 0
-    try:
-        delay = millisecond_lower + secrets.randbelow(millisecond_higher - millisecond_lower)
-    except:
-        messagebox.showerror("Non-Integer Type Error", "Please input a proper Delay Time")
-        return 0
-    delay = delay*0.001
-    win32api.SetCursorPos((x_coord,y_coord))
-    win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN,x_coord,y_coord,0,0)
-    click_delay = (30 + int(secrets.randbelow(40))) * 0.001
-    time.sleep(click_delay)
-    print(click_delay)
-    win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP,x_coord,y_coord,0,0)
-
-    time.sleep(delay)
-
-def updateClickCounter():
-    pass
-    return
-
-def on_press_outer(app): 
-    def on_press(key):
-        global beginningVariable
-        global running
-        global globalKey
-        global lastOption
-        #global testingInt
-        #testingInt = testingInt - 1
-        globalKey = key
-        #print(app.option.get())
-        #print(finalKey)
-        #print("key {}".format(running))
-        if KeyCode(char=key) == finalKey:
-            if beginningVariable == True:
-                if(app.option.get() == 'endless'):
-                    if app.clicking() == 0:
-                        app.update_delay()
-                        p = proc_start()
-                        p.start()
-                        processes.append(p)   
-                        switch()
-                        print(processes)
-                
-                    elif app.clicking() == 1:
-                        print(processes)
-                        for p in processes:
-                            proc_stop(p)
-                            processes.remove(p)
-                        print(processes)
-                        switch()
-                        x_temp, y_temp = win32api.GetCursorPos()
-                        win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, x_temp, y_temp,0,0)
-                        beginningVariable = False
-                        finiteReset.get()
-
-                    lastOption = 'endless'
-                
-                else:
-                    if app.clicking() == 0:
-                        app.update_delay()
-                        p = proc_start()
-                        p.start()
-                        processes.append(p)   
-                        switch()
-                        print(processes)
-                        finiteReset.get()
-                    
-                    beginningVariable = False
-
-                    lastOption = 'finite'
-
-
-            else:
-                if lastOption == 'endless':
-                    if app.option.get() == 'endless':
-                        if app.clicking() == 0:
-                            app.update_delay()
-                            p = proc_start()
-                            p.start()
-                            processes.append(p)   
-                            switch()
-                            print(processes)
-
-                        elif app.clicking() == 1:
-                            print(processes)
-                            for p in processes:
-                                proc_stop(p)
-                                processes.remove(p)
-                            print(processes)
-                            switch()
-                            x_temp, y_temp = win32api.GetCursorPos()
-                            win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, x_temp, y_temp,0,0)
-                    else:
-                        if app.clicking() == 0:
-                            app.update_delay()
-                            p = proc_start()
-                            p.start()
-                            processes.append(p)   
-                            switch()
-                            print(processes)
-                            if finiteReset.empty() != True:
-                                finiteReset.get()
-
-                        elif app.clicking() == 1:
-                            print(processes)
-                            for p in processes:
-                                proc_stop(p)
-                                processes.remove(p)
-                            print(processes)
-                            switch()
-                            x_temp, y_temp = win32api.GetCursorPos()
-                            win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, x_temp, y_temp,0,0)
-                            
-                        lastOption = 'finite'
-
-
-                elif lastOption == 'finite':
-                    if app.option.get() == 'endless':
-                        print("ending!")
-                        if finiteReset.empty() != True:
-                            if finiteReset.get() == True:
-                                switch()
-                                for p in processes:
-                                    proc_stop(p)
-                                    processes.remove(p)
-                                
-                        if app.clicking() == 0:
-                            app.update_delay()
-                            p = proc_start()
-                            p.start()
-                            processes.append(p)   
-                            switch()
-                            print(processes)
-                            #finiteReset.get()
-
-                        elif app.clicking() == 1:
-                            print(processes)
-                            for p in processes:
-                                proc_stop(p)
-                                processes.remove(p)
-                            print(processes)
-                            switch()
-                            x_temp, y_temp = win32api.GetCursorPos()
-                            win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, x_temp, y_temp,0,0)
-
-                        lastOption = 'endless'
-                    
-                    else:
-                        print("testing")
-                        if finiteReset.empty() != True:
-                            if finiteReset.get() == True:
-                                switch()
-                                for p in processes:
-                                    proc_stop(p)
-                                    processes.remove(p)
-                                finiteReset.put(False)
-                        print("testing2")
-                        if app.clicking() == 0:
-                            app.update_delay()
-                            p = proc_start()
-                            p.start()
-                            processes.append(p)   
-                            switch()
-                            print(processes)
-                            if finiteReset.empty() != True:
-                                finiteReset.get()
-
-                        elif app.clicking() == 1:
-                            print(processes)
-                            for p in processes:
-                                proc_stop(p)
-                                processes.remove(p)
-                            print(processes)
-                            switch()
-                            x_temp, y_temp = win32api.GetCursorPos()
-                            win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, x_temp, y_temp,0,0)
-                        
-                        lastOption = 'finite'
-        return on_press
-
-
-def on_closing():
-    listener.stop()
-    try:
-        for p in processes:
-            proc_stop(p)
-    except:
-        pass
-    root.destroy()
-    return
-
-def switch():
-    global running
-    if running == False:
-        running = True
-    else:
-        running = False
-
-def work(s_x, s_y, e_x, e_y, millisecond_higher, millisecond_lower, direction, option, limit, finiteReset, counterVariable):
-    global running
-    if option == 'endless':
-        finiteReset.put(False)
-        print("hi!")
-        while True:
-            if clickMouse(s_x, s_y, e_x, e_y, millisecond_higher, millisecond_lower, direction) == 0:
-                return 0
-
-    elif option == 'finite':
-        finiteReset.put(False)
-        try:
-            limit = int(limit)
-        except:
-            messagebox.showerror("Limit Integer Error", "Enter an integer in the limit box")
-            finiteReset.get()
-            finiteReset.put(True)
-            return 0
-        i = 0
-        while i < limit:
-            if clickMouse(s_x, s_y, e_x, e_y, millisecond_higher, millisecond_lower, direction) == 0:
-                return 0
-            counterVariable.value = counterVariable.value - 1
-            print(counterVariable.value)
-            i += 1
-        finiteReset.get()
-        finiteReset.put(True)
-        
-
-def proc_start():
-    p_to_start = Process(target=work, args=(s_x, s_y, e_x, e_y, millisecond_higher, millisecond_lower, direction, app.option.get(), app.numberofclicks.get(), finiteReset, counterVariable))
-    return p_to_start
-
-
-def proc_stop(p_to_stop):
-    p_to_stop.terminate()
-
-if __name__  == '__main__':
-    root = Tk()
-    app = Application(root)
-    listener = keyboard.Listener(on_press=on_press_outer(app))
-    listener.start()
-    processes = []
-    root.protocol("WM_DELETE_WINDOW", on_closing)
-    root.mainloop()
-    

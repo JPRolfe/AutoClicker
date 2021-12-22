@@ -1,4 +1,4 @@
-import GUI 
+import GUI.GUI_Class as GUI
 
 if __name__  == '__main__':
     listener = 1

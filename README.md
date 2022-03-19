@@ -13,3 +13,6 @@ Clicks Remaining is also disabled and will be implemented in future updates.
 WORKING: CLICK INTERVAL TIME, SET AREA, SET DELAY (FINITE CLICKING & ENDLESS), SET KEYBIND.
 
 NOT WORKING: PRESS & RELEASE CLICK DELAY, CLICKS REMAINING, SECONDS OPTION
+
+
+Current Goal as of 2022: Tidy up the code and sort the methods and class into multiple files.

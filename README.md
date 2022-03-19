@@ -8,3 +8,4 @@ The Lower limit Value and Upper Limit Value is the interval wait time between ea
 
 Press & Release Click delay is the wait time between each click (Currently Disabled - Work in Progress)
 
+Clicks Remaining is also disabled and will be implemented in future updates.
